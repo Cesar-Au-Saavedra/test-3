@@ -73,6 +73,31 @@
     <a class="resume-btn" href="mailto:cesar.saavedra@doxatalent.com" data-i18n="email_team">Email the L&amp;D Team</a>
   </div>
 
+  <h2 class="section-title" data-i18n="ask_ai_title">Ask Our L&amp;D Assistant</h2>
+  <p style="color:#64748b;font-size:13px;font-style:italic;margin-bottom:14px;" data-i18n="ask_ai_disclaimer">Demo only — this searches the course/skill titles already in this prototype. It is not a real AI model.</p>
+  <div class="toolbar">
+    <input type="text" id="aiSearchBox" data-i18n-placeholder="ask_ai_placeholder" placeholder="Try &quot;empathy&quot; or a product name...">
+    <button class="resume-btn" id="aiSearchBtn" data-i18n="ask_ai_search_btn">Search</button>
+  </div>
+  <div id="aiResults" style="margin-top:14px;"></div>
+
+  <div class="profile-section" id="requestCourseBox" style="display:none;margin-top:16px;">
+    <h3 data-i18n="request_course_title">Request a Course or ILT Session</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:14px;" data-i18n="request_course_hint">Can't find it in our library? Tell us what you need and we'll open an email draft to the L&amp;D Team (demo — nothing is sent until you hit send in your own email app).</p>
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:1 / -1;"><label data-i18n="request_course_topic">Course/ILT title or topic</label><input type="text" id="reqTopic" data-i18n-placeholder="request_course_topic_ph" placeholder="e.g. Empathy in Customer Conversations"></div>
+      <div class="form-field">
+        <label data-i18n="request_course_format">Preferred format</label>
+        <select id="reqFormat">
+          <option value="course" data-i18n="request_course_format_course">Self-paced Course</option>
+          <option value="ilt" data-i18n="request_course_format_ilt">Instructor-Led Training (ILT)</option>
+        </select>
+      </div>
+      <div class="form-field" style="grid-column:1 / -1;"><label data-i18n="request_course_desc">Why is this needed?</label><textarea id="reqDesc" rows="3" data-i18n-placeholder="request_course_desc_ph" placeholder="A short note on the audience and why this would help"></textarea></div>
+    </div>
+    <button class="resume-btn" id="reqSubmitBtn" data-i18n="request_course_submit">Open Email Draft</button>
+  </div>
+
   <h2 class="section-title" data-i18n="qna_title">Q&amp;A Knowledge Base</h2>
   <div id="qaList"></div>
 </main>
@@ -99,6 +124,79 @@
   `).join("");
   document.querySelectorAll(".qa-item").forEach(el => {
     el.addEventListener("click", () => el.classList.toggle("open"));
+  });
+
+  /* ===== "Ask Our L&D Assistant" — simulated search over existing Courses & Skills ===== */
+  function searchLibrary(term) {
+    const q = term.trim().toLowerCase();
+    if (!q) return [];
+    const results = [];
+    COURSES.forEach(c => {
+      const haystack = (c.title + " " + c.category).toLowerCase();
+      if (haystack.includes(q)) results.push({ type:"course", title:c.title, sub:c.category, icon:c.icon, id:c.id });
+    });
+    SKILLS.forEach(s => {
+      const articleText = s.article ? (s.article.title + " " + s.article.paragraphs.join(" ")) : "";
+      const haystack = (s.name + " " + articleText).toLowerCase();
+      if (haystack.includes(q)) results.push({ type:"skill", title:s.name, sub:"Skill", icon:"🌱", id:s.id });
+    });
+    return results;
+  }
+
+  function runAiSearch() {
+    const term = document.getElementById("aiSearchBox").value;
+    const results = searchLibrary(term);
+    const box = document.getElementById("aiResults");
+    const reqBox = document.getElementById("requestCourseBox");
+
+    if (!term.trim()) {
+      box.innerHTML = "";
+      reqBox.style.display = "none";
+      return;
+    }
+
+    if (results.length) {
+      box.innerHTML = results.map(r => `
+        <div class="qa-item" style="cursor:default;">
+          <div class="qa-q" style="cursor:default;">
+            <span>${r.icon} ${r.title} <span class="hint" style="font-weight:400;">(${r.sub})</span></span>
+          </div>
+          <div class="qa-a" style="display:block;">
+            <a href="${r.type==='course' ? 'catalog.html' : 'skills.html'}" style="color:#16a34a;font-weight:600;text-decoration:none;">${T("view_in_catalog")} →</a>
+          </div>
+        </div>
+      `).join("");
+      reqBox.style.display = "none";
+    } else {
+      box.innerHTML = `<p style="color:#64748b;font-size:14px;margin-bottom:10px;">${T("ask_ai_no_results")}</p>`;
+      document.getElementById("reqTopic").value = term.trim();
+      reqBox.style.display = "block";
+    }
+  }
+
+  document.getElementById("aiSearchBtn").addEventListener("click", runAiSearch);
+  document.getElementById("aiSearchBox").addEventListener("keydown", (e) => { if (e.key === "Enter") runAiSearch(); });
+
+  document.getElementById("reqSubmitBtn").addEventListener("click", () => {
+    const topic = document.getElementById("reqTopic").value.trim();
+    const format = document.getElementById("reqFormat").value === "ilt" ? "Instructor-Led Training (ILT)" : "Self-paced Course";
+    const desc = document.getElementById("reqDesc").value.trim();
+    const requester = getCurrentUser().name;
+    if (!topic) { showToast(T("request_course_missing_topic")); return; }
+
+    const subject = `Course/ILT Request: ${topic}`;
+    const body =
+`Requested by: ${requester}
+Preferred format: ${format}
+
+Topic/title: ${topic}
+
+Why this is needed:
+${desc || "(not provided)"}
+
+— Sent from the L&D Hub prototype (demo request form)`;
+
+    window.location.href = `mailto:cesar.saavedra@doxatalent.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 </script>
 </body>
