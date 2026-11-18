@@ -94,7 +94,7 @@ function renderNav(activePage) {
   ];
   root.innerHTML = `
     <nav>
-      <div class="brand"><span class="dot"></span> L&amp;D Hub</div>
+      <div class="brand"><img src="logo.png" alt="DOXA Talent" style="height:26px;width:auto;"> L&amp;D Hub</div>
       <div class="nav-links">
         ${links.map(l => `<a href="${l[0]}" class="${activePage===l[0] ? 'active':''}">${l[1]}</a>`).join("")}
       </div>
