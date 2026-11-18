@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;D Hub — Home</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="demo-banner">Click-through prototype — fake sample data only. Not connected to real learners or TalentLMS.</div>
+<div id="nav-root"></div>
+
+<main>
+  <div class="hero" id="hero"></div>
+
+  <h2 class="section-title">Overview</h2>
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <h2 class="section-title">Continue Learning</h2>
+  <div class="grid" id="continueGrid"></div>
+</main>
+
+<footer>Original design concept · Drafted with AI assistance · Click-through prototype, Mission 6 — not a replacement for DOXA's official LMS</footer>
+
+<script src="data.js"></script>
+<script>
+  renderNav("index.html");
+  const user = getCurrentUser();
+  const q = weeklyQuote();
+
+  document.getElementById("hero").innerHTML = `
+    <h1>Welcome, ${user.name.split(" ")[0]}</h1>
+    <div class="quote">"${q.text}" — <span class="who">${q.who}</span><br><span style="opacity:.6;font-size:12px;">Quote refreshes weekly</span></div>
+  `;
+
+  const s = user.stats;
+  document.getElementById("statsGrid").innerHTML = `
+    <div class="stat"><div class="num">${s.testsPassed}</div><div class="label">Passed Tests</div></div>
+    <div class="stat"><div class="num">${s.trainingTime}</div><div class="label">Training Time</div></div>
+    <div class="stat"><div class="num">${s.completionRate}</div><div class="label">Completion Rate</div></div>
+    <div class="stat"><div class="num">${s.activeCourses}</div><div class="label">Active Courses</div></div>
+  `;
+
+  const inProgress = user.enrolled.filter(e => e.progress < 100).slice(0,4);
+  document.getElementById("continueGrid").innerHTML = inProgress.map(e => {
+    const c = courseById(e.courseId);
+    return `<div class="card">
+      <div class="thumb" style="background:#f0fdf4;">${c.icon}</div>
+      <div class="card-body">
+        <h3>${c.title}</h3>
+        <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%;"></div></div>
+        <div class="progress-text">${e.progress}% complete</div>
+        <a class="resume-btn" href="my-training.html">Resume Course</a>
+      </div>
+    </div>`;
+  }).join("") || `<p style="color:#64748b;font-size:14px;">All caught up — check the Catalog for something new.</p>`;
+</script>
+</body>
+</html>

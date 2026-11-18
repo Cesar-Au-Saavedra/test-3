@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;D Hub — Catalog</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="demo-banner">Click-through prototype — fake sample data only. Not connected to real learners or TalentLMS.</div>
+<div id="nav-root"></div>
+
+<main>
+  <h2 class="section-title">Catalog</h2>
+  <div class="catalog-layout">
+    <div class="sidebar-cats">
+      <strong style="font-size:13px;">Categories</strong>
+      <div id="catList" style="margin-top:10px;"></div>
+    </div>
+    <div>
+      <div class="toolbar">
+        <input type="text" id="searchBox" placeholder="Search the catalog...">
+        <button class="filter-btn" id="clearFilters">Clear filters</button>
+      </div>
+      <div class="grid" id="catalogGrid"></div>
+    </div>
+  </div>
+</main>
+
+<footer>Original design concept · Drafted with AI assistance · Click-through prototype, Mission 6 — not a replacement for DOXA's official LMS</footer>
+
+<script src="data.js"></script>
+<script>
+  renderNav("catalog.html");
+  const cats = [...new Set(COURSES.map(c => c.category))];
+  let activeCats = new Set();
+
+  document.getElementById("catList").innerHTML = cats.map(cat => `
+    <label><input type="checkbox" value="${cat}" class="catCheck"> ${cat} (${COURSES.filter(c=>c.category===cat).length})</label>
+  `).join("");
+
+  function render() {
+    const term = document.getElementById("searchBox").value.toLowerCase();
+    const list = COURSES
+      .filter(c => c.title.toLowerCase().includes(term))
+      .filter(c => activeCats.size===0 || activeCats.has(c.category));
+
+    document.getElementById("catalogGrid").innerHTML = list.map(c => `
+      <div class="card">
+        <div class="thumb" style="background:#fef3c7;">${c.icon}</div>
+        <div class="card-body">
+          <h3>${c.title}</h3>
+          <div class="tag-row"><span class="tag">${c.category}</span></div>
+          <button class="enroll-btn">Enroll</button>
+        </div>
+      </div>
+    `).join("") || `<p style="color:#64748b;font-size:14px;">No courses match your search/filters.</p>`;
+  }
+  document.getElementById("searchBox").addEventListener("input", render);
+  document.getElementById("clearFilters").addEventListener("click", () => {
+    activeCats.clear();
+    document.querySelectorAll(".catCheck").forEach(cb => cb.checked=false);
+    document.getElementById("searchBox").value="";
+    render();
+  });
+  document.addEventListener("change", e => {
+    if (e.target.classList.contains("catCheck")) {
+      e.target.checked ? activeCats.add(e.target.value) : activeCats.delete(e.target.value);
+      render();
+    }
+  });
+  render();
+</script>
+</body>
+</html>

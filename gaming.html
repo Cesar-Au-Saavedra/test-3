@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;D Hub — Leaderboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="demo-banner">Click-through prototype — fake sample data only. Not connected to real learners or TalentLMS.</div>
+<div id="nav-root"></div>
+
+<main>
+  <h2 class="section-title">Leaderboard</h2>
+  <p style="color:#64748b;font-size:14px;margin-bottom:18px;">Points are earned for completed activities and finished courses. (Demo scoring, not real.)</p>
+  <table class="leaderboard" id="lbTable">
+    <thead><tr><th>Rank</th><th>Learner</th><th>Points</th><th>Badge</th></tr></thead>
+    <tbody id="lbBody"></tbody>
+  </table>
+</main>
+
+<footer>Original design concept · Drafted with AI assistance · Click-through prototype, Mission 6 — not a replacement for DOXA's official LMS</footer>
+
+<script src="data.js"></script>
+<script>
+  renderNav("gaming.html");
+  const me = getCurrentUser();
+  const ranked = [...DEMO_USERS].sort((a,b) => b.points - a.points);
+
+  function badgeFor(points) {
+    if (points >= 1000) return "Gold";
+    if (points >= 700) return "Silver";
+    return "Bronze";
+  }
+
+  document.getElementById("lbBody").innerHTML = ranked.map((u, i) => `
+    <tr class="${u.id===me.id ? 'me':''}">
+      <td>#${i+1}</td>
+      <td>${u.name}${u.id===me.id ? " (you)" : ""}</td>
+      <td>${u.points} pts</td>
+      <td><span class="badge-pill">${badgeFor(u.points)}</span></td>
+    </tr>
+  `).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;D Hub — Skills</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="demo-banner">Click-through prototype — fake sample data only. Not connected to real learners or TalentLMS.</div>
+<div id="nav-root"></div>
+
+<main>
+  <h2 class="section-title">Skills</h2>
+  <p style="color:#64748b;font-size:14px;margin-bottom:18px;">Click a skill to see the courses in the Catalog that build it.</p>
+  <div class="grid" id="skillsGrid"></div>
+  <div class="skill-detail" id="skillDetail"></div>
+</main>
+
+<footer>Original design concept · Drafted with AI assistance · Click-through prototype, Mission 6 — not a replacement for DOXA's official LMS</footer>
+
+<script src="data.js"></script>
+<script>
+  renderNav("skills.html");
+
+  document.getElementById("skillsGrid").innerHTML = SKILLS.map(s => `
+    <div class="skill-tile" data-id="${s.id}">
+      <h3>${s.name}</h3>
+      <div class="count">${s.courseIds.length} linked course${s.courseIds.length===1?"":"s"}</div>
+    </div>
+  `).join("");
+
+  document.querySelectorAll(".skill-tile").forEach(tile => {
+    tile.addEventListener("click", () => {
+      const skill = skillById(tile.dataset.id);
+      const box = document.getElementById("skillDetail");
+      box.innerHTML = `
+        <h3 style="margin-bottom:10px;">${skill.name} — courses that target this skill</h3>
+        ${skill.courseIds.map(cid => {
+          const c = courseById(cid);
+          return `<div class="course-mini"><span>${c.icon} ${c.title}</span><a href="catalog.html" style="color:#16a34a;font-weight:600;text-decoration:none;">View in Catalog →</a></div>`;
+        }).join("")}
+      `;
+      box.classList.add("open");
+      box.scrollIntoView({behavior:"smooth", block:"nearest"});
+    });
+  });
+</script>
+</body>
+</html>

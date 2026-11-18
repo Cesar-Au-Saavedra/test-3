@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;D Hub — My Training</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="demo-banner">Click-through prototype — fake sample data only. Not connected to real learners or TalentLMS.</div>
+<div id="nav-root"></div>
+
+<main>
+  <h2 class="section-title">My Training</h2>
+  <div class="toolbar">
+    <input type="text" id="searchBox" placeholder="Search your enrolled courses...">
+    <select id="filterSelect">
+      <option value="all">All</option>
+      <option value="inprogress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select>
+  </div>
+  <div class="grid" id="myCoursesGrid"></div>
+</main>
+
+<footer>Original design concept · Drafted with AI assistance · Click-through prototype, Mission 6 — not a replacement for DOXA's official LMS</footer>
+
+<script src="data.js"></script>
+<script>
+  renderNav("my-training.html");
+  const user = getCurrentUser();
+
+  function render() {
+    const term = document.getElementById("searchBox").value.toLowerCase();
+    const filter = document.getElementById("filterSelect").value;
+    const items = user.enrolled
+      .map(e => ({ e, c: courseById(e.courseId) }))
+      .filter(({c}) => c.title.toLowerCase().includes(term))
+      .filter(({e}) => filter==="all" || (filter==="completed" ? e.progress===100 : e.progress<100));
+
+    document.getElementById("myCoursesGrid").innerHTML = items.map(({e,c}) => `
+      <div class="card">
+        <div class="thumb" style="background:#eff6ff;">${c.icon}</div>
+        <div class="card-body">
+          <h3>${c.title}</h3>
+          <div class="tag-row"><span class="tag">${c.category}</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%;"></div></div>
+          <div class="progress-text">${e.progress===100 ? "Completed" : e.progress + "% complete"}</div>
+          <button class="resume-btn">${e.progress===100 ? "Review Course" : "Resume Course"}</button>
+        </div>
+      </div>
+    `).join("") || `<p style="color:#64748b;font-size:14px;">No courses match that search/filter.</p>`;
+  }
+  document.getElementById("searchBox").addEventListener("input", render);
+  document.getElementById("filterSelect").addEventListener("change", render);
+  render();
+</script>
+</body>
+</html>
