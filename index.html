@@ -10,6 +10,19 @@
 <div class="demo-banner">Click-through prototype — fake sample data only. Not connected to real learners or TalentLMS.</div>
 <div id="nav-root"></div>
 
+<div class="side-illustration left">
+  <div style="background:white;border:1px solid #e2e8f0;border-radius:16px;padding:16px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.06);">
+    <img src="team-learning-left.jpg" alt="Team learning together" style="width:100%;height:90px;object-fit:cover;border-radius:10px;display:block;">
+    <div style="font-size:11px;color:#64748b;margin-top:6px;">Learning<br>together</div>
+  </div>
+</div>
+<div class="side-illustration right">
+  <div style="background:white;border:1px solid #e2e8f0;border-radius:16px;padding:16px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.06);">
+    <img src="home-work-right.jpg" alt="Working from home" style="width:100%;height:90px;object-fit:cover;border-radius:10px;display:block;">
+    <div style="font-size:11px;color:#64748b;margin-top:6px;">Grow from<br>anywhere</div>
+  </div>
+</div>
+
 <main>
   <div class="hero" id="hero"></div>
 
@@ -30,7 +43,7 @@
 
   document.getElementById("hero").innerHTML = `
     <h1>Welcome, ${user.name.split(" ")[0]}</h1>
-    <div class="quote">"${q.text}" — <span class="who">${q.who}</span><br><span style="opacity:.6;font-size:12px;"</div>
+    <div class="quote">"${q.text}" — <span class="who">${q.who}</span><br><span style="opacity:.6;font-size:12px;">Quote refreshes weekly</span></div>
   `;
 
   const s = user.stats;

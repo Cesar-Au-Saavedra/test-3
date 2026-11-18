@@ -117,3 +117,15 @@ table.leaderboard tr.me { background:#f0fdf4; }
 footer { text-align:center; padding:24px; font-size:11.5px; color:#94a3b8; }
 .contact-box { background:white; border:1px solid #e2e8f0; border-radius:16px; padding:28px; text-align:center; margin-bottom:30px; }
 .role-select { margin-top:14px; }
+
+/* Decorative side panels — animate in fresh on every page load (i.e. every tab click, since each tab is its own page) */
+.side-illustration {
+  position:fixed; top:130px; width:130px; z-index:1;
+  opacity:0; pointer-events:none;
+}
+.side-illustration.left { left:18px; animation:slideFadeInLeft .55s ease forwards .05s; }
+.side-illustration.right { right:18px; animation:slideFadeInRight .55s ease forwards .05s; }
+@keyframes slideFadeInLeft { from{opacity:0;transform:translateX(-24px) rotate(-4deg);} to{opacity:1;transform:translateX(0) rotate(0);} }
+@keyframes slideFadeInRight { from{opacity:0;transform:translateX(24px) rotate(4deg);} to{opacity:1;transform:translateX(0) rotate(0);} }
+@media (max-width: 1320px) { .side-illustration { display:none; } }
+
