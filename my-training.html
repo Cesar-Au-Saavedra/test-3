@@ -11,27 +11,42 @@
 
 <div class="page-shell">
 <div class="side-illustration left">
-  <div class="side-card"><img src="training-left.jpg" alt="Working from home"><div class="side-caption">Pick up where<br>you left off</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <path d="M10 40 L50 10 L90 40" fill="none" stroke="#052538" stroke-width="4" stroke-linecap="round"/>
+  <rect x="25" y="55" width="50" height="4" rx="2" fill="#052538"/>
+  <rect x="30" y="59" width="4" height="16" fill="#052538"/>
+  <rect x="66" y="59" width="4" height="16" fill="#052538"/>
+  <rect x="40" y="46" width="20" height="12" rx="1" fill="#00AEEF"/>
+  <circle cx="50" cy="30" r="9" fill="#2563eb"/>
+  <path d="M38 55c0-9 6-15 12-15s12 6 12 15z" fill="#2563eb"/>
+  <rect x="78" y="62" width="8" height="10" rx="1" fill="#052538"/>
+  <circle cx="82" cy="58" r="5" fill="#05AF72"/>
+</svg><div class="illus-caption">Pick up where<br>you left off</div></div>
 </div>
 <div class="side-illustration right">
-  <div class="side-card"><img src="training-right.jpg" alt="Celebrating success"><div class="side-caption">Track your<br>progress</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <circle cx="50" cy="26" r="10" fill="#16a34a"/>
+  <path d="M50 36 L50 62 M50 42 L28 22 M50 42 L72 22 M50 62 L33 84 M50 62 L67 84" stroke="#16a34a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="14" cy="14" r="3" fill="#05AF72"/>
+  <circle cx="88" cy="18" r="3" fill="#052538"/>
+  <circle cx="18" cy="70" r="3" fill="#05AF72"/>
+  <circle cx="84" cy="66" r="3" fill="#052538"/>
+</svg><div class="illus-caption">Track your<br>progress</div></div>
 </div>
 
 <main>
-  <h2 class="section-title">My Training</h2>
+  <h2 class="section-title" data-i18n="my_training_title">My Training</h2>
   <div class="toolbar">
-    <input type="text" id="searchBox" placeholder="Search your enrolled courses...">
+    <input type="text" id="searchBox" data-i18n-placeholder="search_enrolled" placeholder="Search your enrolled courses...">
     <select id="filterSelect">
-      <option value="all">All</option>
-      <option value="inprogress">In Progress</option>
-      <option value="completed">Completed</option>
+      <option value="all" data-i18n="filter_all">All</option>
+      <option value="inprogress" data-i18n="filter_inprogress">In Progress</option>
+      <option value="completed" data-i18n="filter_completed">Completed</option>
     </select>
   </div>
   <div class="grid" id="myCoursesGrid"></div>
 </main>
 </div>
-
-<footer>Drafted with AI assistance</footer>
 
 <script src="data.js"></script>
 <script>
@@ -41,9 +56,9 @@
   function render() {
     const term = document.getElementById("searchBox").value.toLowerCase();
     const filter = document.getElementById("filterSelect").value;
-    const items = user.enrolled
+    const items = getEnrollments(user)
       .map(e => ({ e, c: courseById(e.courseId) }))
-      .filter(({c}) => c.title.toLowerCase().includes(term))
+      .filter(({c}) => c && c.title.toLowerCase().includes(term))
       .filter(({e}) => filter==="all" || (filter==="completed" ? e.progress===100 : e.progress<100));
 
     document.getElementById("myCoursesGrid").innerHTML = items.map(({e,c}) => `
@@ -53,15 +68,28 @@
           <h3>${c.title}</h3>
           <div class="tag-row"><span class="tag">${c.category}</span></div>
           <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%;"></div></div>
-          <div class="progress-text">${e.progress===100 ? "Completed" : e.progress + "% complete"}</div>
-          <button class="resume-btn">${e.progress===100 ? "Review Course" : "Resume Course"}</button>
+          <div class="progress-text">${e.progress===100 ? T("status_completed") : e.progress + "% complete"}</div>
+          ${e.progress===100
+            ? `<button class="resume-btn">${T("review_course")}</button>`
+            : `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+                 <button class="resume-btn" style="flex:1;">${T("resume_course")}</button>
+                 <button class="btn-secondary mark-complete-btn" data-cid="${c.id}">${T("mark_complete")}</button>
+               </div>`}
         </div>
       </div>
-    `).join("") || `<p style="color:#64748b;font-size:14px;">No courses match that search/filter.</p>`;
+    `).join("") || `<p style="color:#64748b;font-size:14px;">${T("no_match")}</p>`;
+
+    document.querySelectorAll(".mark-complete-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        markCourseComplete(user, btn.dataset.cid);
+        render();
+      });
+    });
   }
   document.getElementById("searchBox").addEventListener("input", render);
   document.getElementById("filterSelect").addEventListener("change", render);
-  render();
+  window.onLanguageApplied = render;
+  applyLanguage(getLang());
 </script>
 </body>
 </html>

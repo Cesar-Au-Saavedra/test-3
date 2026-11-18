@@ -11,57 +11,122 @@
 
 <div class="page-shell">
 <div class="side-illustration left">
-  <div class="side-card"><img src="home-left.jpg" alt="Team learning together"><div class="side-caption">Learning<br>together</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <rect x="35" y="48" width="30" height="20" rx="2" fill="#052538"/>
+  <rect x="38" y="51" width="24" height="13" fill="#00AEEF"/>
+  <rect x="30" y="68" width="40" height="4" rx="2" fill="#052538"/>
+  <circle cx="18" cy="30" r="9" fill="#05AF72"/>
+  <path d="M6 58c0-10 8-16 12-16s12 6 12 16z" fill="#05AF72"/>
+  <circle cx="82" cy="30" r="9" fill="#00AEEF"/>
+  <path d="M70 58c0-10 8-16 12-16s12 6 12 16z" fill="#00AEEF"/>
+</svg><div class="illus-caption">Learning<br>together</div></div>
 </div>
 <div class="side-illustration right">
-  <div class="side-card"><img src="home-right.jpg" alt="Working from home"><div class="side-caption">Grow from<br>anywhere</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <path d="M10 40 L50 10 L90 40" fill="none" stroke="#052538" stroke-width="4" stroke-linecap="round"/>
+  <rect x="25" y="55" width="50" height="4" rx="2" fill="#052538"/>
+  <rect x="30" y="59" width="4" height="16" fill="#052538"/>
+  <rect x="66" y="59" width="4" height="16" fill="#052538"/>
+  <rect x="40" y="46" width="20" height="12" rx="1" fill="#00AEEF"/>
+  <circle cx="50" cy="30" r="9" fill="#05AF72"/>
+  <path d="M38 55c0-9 6-15 12-15s12 6 12 15z" fill="#05AF72"/>
+  <rect x="78" y="62" width="8" height="10" rx="1" fill="#052538"/>
+  <circle cx="82" cy="58" r="5" fill="#05AF72"/>
+</svg><div class="illus-caption">Grow from<br>anywhere</div></div>
 </div>
 
 <main>
   <div class="hero" id="hero"></div>
 
-  <h2 class="section-title">Overview</h2>
+  <h2 class="section-title" data-i18n="overview">Overview</h2>
   <div class="stats-grid" id="statsGrid"></div>
 
-  <h2 class="section-title">Continue Learning</h2>
+  <h2 class="section-title" data-i18n="continue_learning">Continue Learning</h2>
   <div class="grid" id="continueGrid"></div>
 </main>
 </div>
 
-<footer>Drafted with AI assistance</footer>
+<div class="floating-widget" id="challengeWidget">
+  <div class="floating-widget-header" id="challengeWidgetHeader">
+    <span data-i18n="widget_title">🎯 Today's Challenges</span>
+    <span id="challengeWidgetToggle">▾</span>
+  </div>
+  <div class="floating-widget-body" id="challengeWidgetBody"></div>
+</div>
 
 <script src="data.js"></script>
 <script>
   renderNav("index.html");
-  const user = getCurrentUser();
-  const q = weeklyQuote();
 
-  document.getElementById("hero").innerHTML = `
-    <h1>Welcome, ${user.name.split(" ")[0]}</h1>
-    <div class="quote">"${q.text}" — <span class="who">${q.who}</span><br><span style="opacity:.6;font-size:12px;">Quote refreshes weekly</span></div>
-  `;
+  function renderChallengeWidget() {
+    const user = getCurrentUser();
+    const loginDone = challengeDoneToday("daily_login_" + user.id);
+    const lbDone = challengeDoneToday("daily_visit_leaderboard_" + user.id);
+    const teamDone = challengeDoneToday("daily_visit_team_" + user.id);
+    const articlesRead = SKILLS.filter(s => isArticleRead(s.id, user.id)).length;
+    const enrolledCount = getEnrollments(user).length;
+    const completedCount = getCompletedCourses(user).length;
 
-  const s = user.stats;
-  document.getElementById("statsGrid").innerHTML = `
-    <div class="stat"><div class="num">${s.testsPassed}</div><div class="label">Passed Tests</div></div>
-    <div class="stat"><div class="num">${s.trainingTime}</div><div class="label">Training Time</div></div>
-    <div class="stat"><div class="num">${s.completionRate}</div><div class="label">Completion Rate</div></div>
-    <div class="stat"><div class="num">${s.activeCourses}</div><div class="label">Active Courses</div></div>
-  `;
+    const row = (done, label) => `
+      <div class="fw-item">
+        <span>${label}</span>
+        <span class="${done ? 'fw-check' : 'fw-pending'}">${done ? '✓' : '—'}</span>
+      </div>`;
 
-  const inProgress = user.enrolled.filter(e => e.progress < 100).slice(0,4);
-  document.getElementById("continueGrid").innerHTML = inProgress.map(e => {
-    const c = courseById(e.courseId);
-    return `<div class="card">
-      <div class="thumb" style="background:#f0fdf4;">${c.icon}</div>
-      <div class="card-body">
-        <h3>${c.title}</h3>
-        <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%;"></div></div>
-        <div class="progress-text">${e.progress}% complete</div>
-        <a class="resume-btn" href="my-training.html">Resume Course</a>
-      </div>
-    </div>`;
-  }).join("") || `<p style="color:#64748b;font-size:14px;">All caught up — check the Catalog for something new.</p>`;
+    document.getElementById("challengeWidgetBody").innerHTML = `
+      ${row(loginDone, T("widget_login_bonus"))}
+      ${row(lbDone, T("widget_visit_leaderboard"))}
+      ${row(teamDone, T("widget_visit_team"))}
+      <div class="fw-item"><span>📘 ${T("skills_title")}</span><span class="fw-check">${articlesRead}</span></div>
+      <div class="fw-item"><span>🗂️ ${T("enroll")}</span><span class="fw-check">${enrolledCount}</span></div>
+      <div class="fw-item"><span>🎓 ${T("certificates_title")}</span><span class="fw-check">${completedCount}</span></div>
+      <div class="fw-total">${T("widget_points_today")}: ${totalPoints(user)}</div>
+    `;
+  }
+
+  document.getElementById("challengeWidgetHeader").addEventListener("click", () => {
+    document.getElementById("challengeWidget").classList.toggle("collapsed");
+  });
+
+  // auto-refresh so the widget reflects challenges completed on other tabs/pages
+  setInterval(renderChallengeWidget, 2000);
+  window.addEventListener("storage", renderChallengeWidget);
+
+  function render() {
+    const user = getCurrentUser();
+    const q = weeklyQuote();
+
+    document.getElementById("hero").innerHTML = `
+      <h1>${T("welcome")}, ${user.name.split(" ")[0]}</h1>
+      <div class="quote">"${q.text}" — <span class="who">${q.who}</span><br><span style="opacity:.6;font-size:12px;">${T("quote_refresh")}</span></div>
+    `;
+
+    const s = user.stats;
+    document.getElementById("statsGrid").innerHTML = `
+      <div class="stat"><div class="num">${s.testsPassed}</div><div class="label">${T("passed_tests")}</div></div>
+      <div class="stat"><div class="num">${s.trainingTime}</div><div class="label">${T("training_time")}</div></div>
+      <div class="stat"><div class="num">${s.completionRate}</div><div class="label">${T("completion_rate")}</div></div>
+      <div class="stat"><div class="num">${s.activeCourses}</div><div class="label">${T("active_courses")}</div></div>
+    `;
+
+    const inProgress = user.enrolled.filter(e => e.progress < 100).slice(0,4);
+    document.getElementById("continueGrid").innerHTML = inProgress.map(e => {
+      const c = courseById(e.courseId);
+      return `<div class="card">
+        <div class="thumb" style="background:#f0fdf4;">${c.icon}</div>
+        <div class="card-body">
+          <h3>${c.title}</h3>
+          <div class="progress-bar"><div class="progress-fill" style="width:${e.progress}%;"></div></div>
+          <div class="progress-text">${e.progress}% complete</div>
+          <a class="resume-btn" href="my-training.html">${T("resume_course")}</a>
+        </div>
+      </div>`;
+    }).join("") || `<p style="color:#64748b;font-size:14px;">${T("all_caught_up")}</p>`;
+  }
+
+  window.onLanguageApplied = function() { render(); renderChallengeWidget(); };
+  applyLanguage(getLang());
+  renderChallengeWidget();
 </script>
 </body>
 </html>

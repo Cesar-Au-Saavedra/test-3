@@ -11,23 +11,38 @@
 
 <div class="page-shell">
 <div class="side-illustration left">
-  <div class="side-card"><img src="catalog-left.jpg" alt="Team learning together"><div class="side-caption">Explore new<br>courses</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <rect x="35" y="48" width="30" height="20" rx="2" fill="#052538"/>
+  <rect x="38" y="51" width="24" height="13" fill="#b45309"/>
+  <rect x="30" y="68" width="40" height="4" rx="2" fill="#052538"/>
+  <circle cx="18" cy="30" r="9" fill="#05AF72"/>
+  <path d="M6 58c0-10 8-16 12-16s12 6 12 16z" fill="#05AF72"/>
+  <circle cx="82" cy="30" r="9" fill="#b45309"/>
+  <path d="M70 58c0-10 8-16 12-16s12 6 12 16z" fill="#b45309"/>
+</svg><div class="illus-caption">Explore new<br>courses</div></div>
 </div>
 <div class="side-illustration right">
-  <div class="side-card"><img src="catalog-right.jpg" alt="Celebrating success"><div class="side-caption">Search by<br>category</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <circle cx="50" cy="26" r="10" fill="#9333ea"/>
+  <path d="M50 36 L50 62 M50 42 L28 22 M50 42 L72 22 M50 62 L33 84 M50 62 L67 84" stroke="#9333ea" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="14" cy="14" r="3" fill="#05AF72"/>
+  <circle cx="88" cy="18" r="3" fill="#052538"/>
+  <circle cx="18" cy="70" r="3" fill="#05AF72"/>
+  <circle cx="84" cy="66" r="3" fill="#052538"/>
+</svg><div class="illus-caption">Search by<br>category</div></div>
 </div>
 
 <main>
-  <h2 class="section-title">Catalog</h2>
+  <h2 class="section-title" data-i18n="catalog_title">Catalog</h2>
   <div class="catalog-layout">
     <div class="sidebar-cats">
-      <strong style="font-size:13px;">Categories</strong>
+      <strong style="font-size:13px;" data-i18n="categories">Categories</strong>
       <div id="catList" style="margin-top:10px;"></div>
     </div>
     <div>
       <div class="toolbar">
-        <input type="text" id="searchBox" placeholder="Search the catalog...">
-        <button class="filter-btn" id="clearFilters">Clear filters</button>
+        <input type="text" id="searchBox" data-i18n-placeholder="search_catalog" placeholder="Search the catalog...">
+        <button class="filter-btn" id="clearFilters" data-i18n="clear_filters">Clear filters</button>
       </div>
       <div class="grid" id="catalogGrid"></div>
     </div>
@@ -35,11 +50,10 @@
 </main>
 </div>
 
-<footer>Drafted with AI assistance</footer>
-
 <script src="data.js"></script>
 <script>
   renderNav("catalog.html");
+  const me = getCurrentUser();
   const cats = [...new Set(COURSES.map(c => c.category))];
   let activeCats = new Set();
 
@@ -53,16 +67,26 @@
       .filter(c => c.title.toLowerCase().includes(term))
       .filter(c => activeCats.size===0 || activeCats.has(c.category));
 
-    document.getElementById("catalogGrid").innerHTML = list.map(c => `
+    document.getElementById("catalogGrid").innerHTML = list.map(c => {
+      const enrolled = isEnrolled(me, c.id);
+      return `
       <div class="card">
         <div class="thumb" style="background:#fef3c7;">${c.icon}</div>
         <div class="card-body">
           <h3>${c.title}</h3>
           <div class="tag-row"><span class="tag">${c.category}</span></div>
-          <button class="enroll-btn">Enroll</button>
+          <button class="enroll-btn" data-cid="${c.id}" ${enrolled ? "disabled" : ""}>${enrolled ? T("enrolled_pill") : T("enroll")}</button>
         </div>
-      </div>
-    `).join("") || `<p style="color:#64748b;font-size:14px;">No courses match your search/filters.</p>`;
+      </div>`;
+    }).join("") || `<p style="color:#64748b;font-size:14px;">No courses match your search/filters.</p>`;
+
+    document.querySelectorAll(".enroll-btn:not([disabled])").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const cid = btn.dataset.cid;
+        enrollInCourse(me, cid);
+        render();
+      });
+    });
   }
   document.getElementById("searchBox").addEventListener("input", render);
   document.getElementById("clearFilters").addEventListener("click", () => {
@@ -77,6 +101,8 @@
       render();
     }
   });
+  window.onLanguageApplied = render;
+  applyLanguage(getLang());
   render();
 </script>
 </body>

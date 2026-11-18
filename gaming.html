@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>L&amp;D Hub — Leaderboard</title>
+<title>L&amp;D Hub — Gaming</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,44 +11,200 @@
 
 <div class="page-shell">
 <div class="side-illustration left">
-  <div class="side-card"><img src="leaderboard-left.jpg" alt="Celebrating success"><div class="side-caption">Earn points,<br>climb ranks</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <circle cx="50" cy="26" r="10" fill="#b45309"/>
+  <path d="M50 36 L50 62 M50 42 L28 22 M50 42 L72 22 M50 62 L33 84 M50 62 L67 84" stroke="#b45309" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="14" cy="14" r="3" fill="#05AF72"/>
+  <circle cx="88" cy="18" r="3" fill="#052538"/>
+  <circle cx="18" cy="70" r="3" fill="#05AF72"/>
+  <circle cx="84" cy="66" r="3" fill="#052538"/>
+  <circle cx="50" cy="8" r="3" fill="#00AEEF"/>
+</svg><div class="illus-caption">Earn points,<br>climb ranks</div></div>
 </div>
 <div class="side-illustration right">
-  <div class="side-card"><img src="leaderboard-right.jpg" alt="Team learning together"><div class="side-caption">Compete with<br>your team</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <rect x="35" y="48" width="30" height="20" rx="2" fill="#052538"/>
+  <rect x="38" y="51" width="24" height="13" fill="#9333ea"/>
+  <rect x="30" y="68" width="40" height="4" rx="2" fill="#052538"/>
+  <circle cx="18" cy="30" r="9" fill="#9333ea"/>
+  <path d="M6 58c0-10 8-16 12-16s12 6 12 16z" fill="#9333ea"/>
+  <circle cx="82" cy="30" r="9" fill="#05AF72"/>
+  <path d="M70 58c0-10 8-16 12-16s12 6 12 16z" fill="#05AF72"/>
+</svg><div class="illus-caption">Compete with<br>your team</div></div>
 </div>
 
 <main>
-  <h2 class="section-title">Leaderboard</h2>
-  <p style="color:#64748b;font-size:14px;margin-bottom:18px;">Points are earned for completed activities and finished courses. (Demo scoring, not real.)</p>
+  <h2 class="section-title" data-i18n="gaming_title">Gaming</h2>
+
+  <h3 style="margin-bottom:14px;" data-i18n="challenges_title">Today's Challenges</h3>
+  <div id="challengeList" style="margin-bottom:30px;"></div>
+
+  <h3 style="margin-bottom:14px;" data-i18n="puzzle_title">Word Puzzle</h3>
+  <p class="hint" style="margin-bottom:14px;">DOXA &amp; course-themed clues — solve all five for a bonus.</p>
+  <div id="puzzleList" style="margin-bottom:30px;"></div>
+
+  <h3 style="margin-bottom:14px;" data-i18n="leaderboard_title">Leaderboard</h3>
+  <p class="hint" style="margin-bottom:14px;" data-i18n="leaderboard_hint">Points are earned for completed activities and finished courses.</p>
   <table class="leaderboard" id="lbTable">
-    <thead><tr><th>Rank</th><th>Learner</th><th>Points</th><th>Badge</th></tr></thead>
+    <thead><tr>
+      <th data-i18n="rank">Rank</th><th data-i18n="learner">Learner</th><th data-i18n="points">Points</th><th data-i18n="badge">Badge</th>
+    </tr></thead>
     <tbody id="lbBody"></tbody>
   </table>
 </main>
 </div>
 
-<footer>Drafted with AI assistance</footer>
+<div id="saveToast"></div>
 
 <script src="data.js"></script>
 <script>
   renderNav("gaming.html");
   const me = getCurrentUser();
-  const ranked = [...DEMO_USERS].sort((a,b) => b.points - a.points);
+  awardDaily("daily_visit_leaderboard_" + me.id, 1, T("widget_visit_leaderboard"));
 
-  function badgeFor(points) {
-    if (points >= 1000) return "Gold";
-    if (points >= 700) return "Silver";
-    return "Bronze";
+  const PUZZLE = [
+    { id:"p1", clue:"Our training platform's acronym", answer:"LMS" },
+    { id:"p2", clue:"The live virtual classroom format you attend", answer:"ILT" },
+    { id:"p3", clue:"The company behind your training platform", answer:"DOXA" },
+    { id:"p4", clue:"What you earn for finishing activities", answer:"POINTS" },
+    { id:"p5", clue:"Where you browse every available course", answer:"CATALOG" }
+  ];
+
+  function renderChallenges() {
+    const loginDone = challengeDoneToday("daily_login_" + me.id);
+    const lbDone = challengeDoneToday("daily_visit_leaderboard_" + me.id);
+    const teamDone = challengeDoneToday("daily_visit_team_" + me.id);
+    const articlesRead = SKILLS.filter(s => isArticleRead(s.id, me.id)).length;
+    const commitmentText = (() => { try { return localStorage.getItem("ldhub_commitment_" + me.id); } catch(e) { return null; } })();
+    const commitmentDoneToday = challengeDoneToday("commitment");
+
+    document.getElementById("challengeList").innerHTML = `
+      <div class="profile-section" style="padding:16px 20px;">
+        <div class="row-between" style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
+          <span>🔑 <span data-i18n="widget_login_bonus">Daily login bonus</span> <span class="hint">(+5 pts/day)</span></span>
+          ${loginDone ? `<span class="status-pill">✓</span>` : `<span class="hint">Log in to earn it</span>`}
+        </div>
+        <div class="row-between" style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
+          <span>🏆 <span data-i18n="widget_visit_leaderboard">Visit the Leaderboard</span> <span class="hint">(+1 pt/day)</span></span>
+          ${lbDone ? `<span class="status-pill">✓</span>` : `<span class="hint">Earned just now</span>`}
+        </div>
+        <div class="row-between" style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
+          <span>🤝 <span data-i18n="widget_visit_team">Visit Team &amp; Support</span> <span class="hint">(+1 pt/day)</span></span>
+          ${teamDone ? `<span class="status-pill">✓</span>` : `<a class="btn-secondary" style="text-decoration:none;" href="team.html">Go</a>`}
+        </div>
+        <div class="row-between" style="padding:8px 0;border-bottom:1px solid #f1f5f9;">
+          <span>📘 <span data-i18n="challenge_skill">Read skill articles</span> <span class="hint">(+2 pts each)</span></span>
+          <a class="btn-secondary" style="text-decoration:none;" href="skills.html">${articlesRead}/${SKILLS.length} read</a>
+        </div>
+        <div style="padding-top:12px;">
+          <label style="font-size:12.5px;color:#475569;font-weight:600;" data-i18n="commitment_label">Leave a commitment</label>
+          <span class="hint">(+20 pts)</span>
+          ${commitmentDoneToday && commitmentText
+            ? `<p style="margin-top:8px;font-size:14px;background:#f0fdf4;padding:10px 12px;border-radius:8px;">"${commitmentText}"</p>`
+            : `<div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                 <input type="text" id="commitmentInput" data-i18n-placeholder="commitment_placeholder" placeholder="This week I commit to..." style="flex:1;min-width:200px;padding:9px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;">
+                 <button class="resume-btn" id="commitBtn" data-i18n="submit_commitment">Submit Commitment</button>
+               </div>`}
+        </div>
+      </div>
+    `;
+
+    if (!(commitmentDoneToday && commitmentText)) {
+      document.getElementById("commitBtn").addEventListener("click", () => {
+        const val = document.getElementById("commitmentInput").value.trim();
+        if (!val) return;
+        try { localStorage.setItem("ldhub_commitment_" + me.id, val); } catch(e) {}
+        markChallenge("commitment");
+        addBonusPoints(me.id, 20);
+        showToast("+20 pts — left a commitment");
+        renderAll();
+      });
+    }
   }
 
-  document.getElementById("lbBody").innerHTML = ranked.map((u, i) => `
-    <tr class="${u.id===me.id ? 'me':''}">
-      <td>#${i+1}</td>
-      <td>${u.name}${u.id===me.id ? " (you)" : ""}</td>
-      <td>${u.points} pts</td>
-      <td><span class="badge-pill">${badgeFor(u.points)}</span></td>
-    </tr>
-  `).join("");
+  function renderPuzzle() {
+    document.getElementById("puzzleList").innerHTML = PUZZLE.map(p => {
+      const solved = (() => { try { return localStorage.getItem("ldhub_puzzle_" + p.id) === "solved"; } catch(e){ return false; } })();
+      const boxes = p.answer.split("").map((_,i) =>
+        `<input maxlength="1" class="pz-box" data-idx="${i}" style="width:30px;height:36px;text-align:center;font-size:16px;font-weight:700;text-transform:uppercase;border:1px solid #e2e8f0;border-radius:6px;margin-right:4px;" ${solved ? "disabled value='"+p.answer[i]+"'" : ""}>`
+      ).join("");
+      return `
+        <div class="profile-section" data-pid="${p.id}" style="padding:14px 18px;margin-bottom:10px;">
+          <div class="row-between">
+            <span style="font-size:14px;">${p.clue}</span>
+            ${solved ? `<span class="status-pill">Solved ✓</span>` : ""}
+          </div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>${boxes}</div>
+            ${!solved ? `
+              <button class="btn-secondary pz-hint" data-pid="${p.id}" data-i18n="puzzle_hint_btn">Hint</button>
+              <button class="resume-btn pz-check" data-pid="${p.id}" data-i18n="puzzle_check_btn">Check</button>
+            ` : ``}
+          </div>
+          <div class="hint pz-hint-text" data-pid="${p.id}" style="display:none;margin-top:6px;">Hint: ${p.answer.length} letters — starts with "${p.answer[0]}"</div>
+        </div>
+      `;
+    }).join("");
+
+    document.querySelectorAll(".pz-hint").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelector(`.pz-hint-text[data-pid="${btn.dataset.pid}"]`).style.display = "block";
+      });
+    });
+    document.querySelectorAll(".pz-check").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const pid = btn.dataset.pid;
+        const p = PUZZLE.find(x => x.id === pid);
+        const section = document.querySelector(`[data-pid="${pid}"].profile-section`);
+        const letters = [...section.querySelectorAll(".pz-box")].map(i => (i.value || "").toUpperCase()).join("");
+        if (letters === p.answer) {
+          try { localStorage.setItem("ldhub_puzzle_" + pid, "solved"); } catch(e) {}
+          addBonusPoints(me.id, 10);
+          showToast("+10 pts — solved it!");
+          checkAllSolved();
+          renderPuzzle();
+        } else {
+          showToast("Not quite — try again");
+        }
+      });
+    });
+  }
+
+  function checkAllSolved() {
+    const allSolved = PUZZLE.every(p => {
+      try { return localStorage.getItem("ldhub_puzzle_" + p.id) === "solved"; } catch(e) { return false; }
+    });
+    if (allSolved && !challengeEverDone("puzzle_bonus")) {
+      addBonusPoints(me.id, 25);
+      markEverDone("puzzle_bonus");
+      showToast("+25 bonus pts — all 5 solved!");
+    }
+  }
+  function renderLeaderboard() {
+    const ranked = [...DEMO_USERS].sort((a,b) => totalPoints(b) - totalPoints(a));
+    function badgeFor(points) {
+      if (points >= 1000) return "Gold";
+      if (points >= 700) return "Silver";
+      return "Bronze";
+    }
+    document.getElementById("lbBody").innerHTML = ranked.map((u, i) => `
+      <tr class="${u.id===me.id ? 'me':''}">
+        <td>#${i+1}</td>
+        <td>${u.name}${u.id===me.id ? " (you)" : ""}</td>
+        <td>${totalPoints(u)} pts</td>
+        <td><span class="badge-pill">${badgeFor(totalPoints(u))}</span></td>
+      </tr>
+    `).join("");
+  }
+
+  function renderAll() {
+    renderChallenges();
+    renderPuzzle();
+    renderLeaderboard();
+  }
+
+  window.onLanguageApplied = renderAll;
+  applyLanguage(getLang());
 </script>
 </body>
 </html>

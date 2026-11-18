@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L&amp;D Hub — Certificates</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="nav-root"></div>
+
+<div class="page-shell">
+<div class="side-illustration left">
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <rect x="20" y="20" width="60" height="44" rx="3" fill="#fff" stroke="#052538" stroke-width="3"/>
+  <circle cx="50" cy="40" r="10" fill="#f59e0b"/>
+  <path d="M44 48 L40 70 L50 62 L60 70 L56 48" fill="#f59e0b"/>
+  <rect x="28" y="28" width="22" height="3" rx="1" fill="#00AEEF"/>
+</svg><div class="illus-caption">Proof of<br>your progress</div></div>
+</div>
+<div class="side-illustration right">
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <circle cx="50" cy="26" r="10" fill="#16a34a"/>
+  <path d="M50 36 L50 62 M50 42 L28 22 M50 42 L72 22 M50 62 L33 84 M50 62 L67 84" stroke="#16a34a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="14" cy="14" r="3" fill="#05AF72"/>
+  <circle cx="88" cy="18" r="3" fill="#052538"/>
+  <circle cx="18" cy="70" r="3" fill="#05AF72"/>
+  <circle cx="84" cy="66" r="3" fill="#052538"/>
+</svg><div class="illus-caption">Earn 5 points<br>per certificate</div></div>
+</div>
+
+<main>
+  <h2 class="section-title" data-i18n="certificates_title">Certificates</h2>
+  <p style="color:#64748b;font-size:14px;margin-bottom:18px;" data-i18n="certificates_hint">Download a certificate for every course you've completed.</p>
+  <div class="grid" id="certGrid"></div>
+</main>
+</div>
+
+<script src="data.js"></script>
+<script>
+  renderNav("certificates.html");
+  const user = getCurrentUser();
+
+  function buildCertificateHtml(course, user) {
+    const date = new Date().toLocaleDateString();
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificate — ${course.title}</title>
+    <style>
+      body{font-family:Georgia,serif;background:#f8fafc;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;}
+      .cert{border:10px solid #052538;padding:50px 60px;background:white;text-align:center;max-width:640px;border-radius:6px;}
+      h1{color:#052538;font-size:26px;margin-bottom:6px;}
+      .sub{color:#64748b;font-size:14px;margin-bottom:30px;}
+      .name{font-size:28px;color:#05AF72;font-weight:bold;margin:20px 0;}
+      .course{font-size:19px;color:#052538;margin-bottom:24px;}
+      .date{font-size:13px;color:#94a3b8;margin-top:30px;}
+      .footer{font-size:11px;color:#cbd5e1;margin-top:16px;}
+    </style></head><body>
+      <div class="cert">
+        <h1>Certificate of Completion</h1>
+        <div class="sub">DOXA Talent — L&amp;D Hub (demo)</div>
+        <div>This certifies that</div>
+        <div class="name">${user.name}</div>
+        <div>has successfully completed</div>
+        <div class="course">${course.title}</div>
+        <div class="date">Issued ${date}</div>
+        <div class="footer">Demo certificate — drafted with AI assistance, not an official record.</div>
+      </div>
+    </body></html>`;
+  }
+
+  function downloadCertificate(course) {
+    const html = buildCertificateHtml(course, user);
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Certificate - ${course.title}.html`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function render() {
+    const completed = getCompletedCourses(user);
+    document.getElementById("certGrid").innerHTML = completed.map(c => `
+      <div class="card">
+        <div class="thumb" style="background:#fef9e7;">🎓</div>
+        <div class="card-body">
+          <h3>${c.title}</h3>
+          <div class="tag-row"><span class="tag">${c.category}</span></div>
+          <button class="resume-btn download-cert-btn" data-cid="${c.id}">${T("download_cert")}</button>
+        </div>
+      </div>
+    `).join("") || `<p style="color:#64748b;font-size:14px;">${T("no_certificates")}</p>`;
+
+    document.querySelectorAll(".download-cert-btn").forEach(btn => {
+      btn.addEventListener("click", () => downloadCertificate(courseById(btn.dataset.cid)));
+    });
+  }
+
+  window.onLanguageApplied = render;
+  applyLanguage(getLang());
+</script>
+</body>
+</html>

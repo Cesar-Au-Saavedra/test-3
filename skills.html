@@ -11,25 +11,42 @@
 
 <div class="page-shell">
 <div class="side-illustration left">
-  <div class="side-card"><img src="skills-left.jpg" alt="Working from home"><div class="side-caption">Build new<br>skills</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <path d="M10 40 L50 10 L90 40" fill="none" stroke="#052538" stroke-width="4" stroke-linecap="round"/>
+  <rect x="25" y="55" width="50" height="4" rx="2" fill="#052538"/>
+  <rect x="30" y="59" width="4" height="16" fill="#052538"/>
+  <rect x="66" y="59" width="4" height="16" fill="#052538"/>
+  <rect x="40" y="46" width="20" height="12" rx="1" fill="#05AF72"/>
+  <circle cx="50" cy="30" r="9" fill="#05AF72"/>
+  <path d="M38 55c0-9 6-15 12-15s12 6 12 15z" fill="#05AF72"/>
+  <rect x="78" y="62" width="8" height="10" rx="1" fill="#052538"/>
+  <circle cx="82" cy="58" r="5" fill="#00AEEF"/>
+</svg><div class="illus-caption">Build new<br>skills</div></div>
 </div>
 <div class="side-illustration right">
-  <div class="side-card"><img src="skills-right.jpg" alt="Team learning together"><div class="side-caption">Linked to real<br>courses</div></div>
+  <div class="illus-card"><svg viewBox="0 0 100 90">
+  <rect x="35" y="48" width="30" height="20" rx="2" fill="#052538"/>
+  <rect x="38" y="51" width="24" height="13" fill="#00AEEF"/>
+  <rect x="30" y="68" width="40" height="4" rx="2" fill="#052538"/>
+  <circle cx="18" cy="30" r="9" fill="#00AEEF"/>
+  <path d="M6 58c0-10 8-16 12-16s12 6 12 16z" fill="#00AEEF"/>
+  <circle cx="82" cy="30" r="9" fill="#05AF72"/>
+  <path d="M70 58c0-10 8-16 12-16s12 6 12 16z" fill="#05AF72"/>
+</svg><div class="illus-caption">Linked to real<br>courses</div></div>
 </div>
 
 <main>
-  <h2 class="section-title">Skills</h2>
-  <p style="color:#64748b;font-size:14px;margin-bottom:18px;">Click a skill to see the courses in the Catalog that build it.</p>
+  <h2 class="section-title" data-i18n="skills_title">Skills</h2>
+  <p style="color:#64748b;font-size:14px;margin-bottom:18px;" data-i18n="skills_hint">Click a skill to see the courses in the Catalog that build it.</p>
   <div class="grid" id="skillsGrid"></div>
   <div class="skill-detail" id="skillDetail"></div>
 </main>
 </div>
 
-<footer>Drafted with AI assistance</footer>
-
 <script src="data.js"></script>
 <script>
   renderNav("skills.html");
+  applyLanguage(getLang());
 
   document.getElementById("skillsGrid").innerHTML = SKILLS.map(s => `
     <div class="skill-tile" data-id="${s.id}">
@@ -38,19 +55,49 @@
     </div>
   `).join("");
 
+  const user = getCurrentUser();
+
   document.querySelectorAll(".skill-tile").forEach(tile => {
     tile.addEventListener("click", () => {
       const skill = skillById(tile.dataset.id);
       const box = document.getElementById("skillDetail");
+      const alreadyRead = isArticleRead(skill.id, user.id);
       box.innerHTML = `
         <h3 style="margin-bottom:10px;">${skill.name} — courses that target this skill</h3>
         ${skill.courseIds.map(cid => {
           const c = courseById(cid);
-          return `<div class="course-mini"><span>${c.icon} ${c.title}</span><a href="catalog.html" style="color:#16a34a;font-weight:600;text-decoration:none;">View in Catalog →</a></div>`;
+          return `<div class="course-mini"><span>${c.icon} ${c.title}</span><a href="catalog.html" style="color:#16a34a;font-weight:600;text-decoration:none;">${T("view_in_catalog")} →</a></div>`;
         }).join("")}
+        ${skill.article ? `
+          <h3 style="margin:18px 0 8px;">${skill.article.title}</h3>
+          <div class="article-scrollbox" id="articleBox" style="max-height:220px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;background:#f8fafc;">
+            ${skill.article.paragraphs.map(p => `<p style="font-size:13.5px;line-height:1.6;color:#334155;margin-bottom:10px;">${p}</p>`).join("")}
+          </div>
+          <div style="margin-top:10px;">
+            ${alreadyRead
+              ? `<span class="status-pill">${T("already_read")}</span>`
+              : `<button class="resume-btn" id="markReadBtn" style="display:none;">${T("mark_read")}</button>`}
+          </div>
+        ` : ``}
       `;
       box.classList.add("open");
       box.scrollIntoView({behavior:"smooth", block:"nearest"});
+
+      if (skill.article && !alreadyRead) {
+        const articleBox = document.getElementById("articleBox");
+        const markBtn = document.getElementById("markReadBtn");
+        const checkScroll = () => {
+          if (articleBox.scrollTop + articleBox.clientHeight >= articleBox.scrollHeight - 6) {
+            markBtn.style.display = "inline-block";
+          }
+        };
+        articleBox.addEventListener("scroll", checkScroll);
+        checkScroll();
+        markBtn.addEventListener("click", () => {
+          markArticleRead(skill.id, user.id, skill.name);
+          markBtn.outerHTML = `<span class="status-pill">${T("already_read")}</span>`;
+        });
+      }
     });
   });
 </script>
