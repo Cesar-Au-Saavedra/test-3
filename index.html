@@ -19,7 +19,7 @@
   <path d="M6 58c0-10 8-16 12-16s12 6 12 16z" fill="#05AF72"/>
   <circle cx="82" cy="30" r="9" fill="#00AEEF"/>
   <path d="M70 58c0-10 8-16 12-16s12 6 12 16z" fill="#00AEEF"/>
-</svg><div class="illus-caption">Learning<br>together</div></div>
+</svg><div class="illus-caption" data-i18n="cap_learning_together">Learning<br>together</div></div>
 </div>
 <div class="side-illustration right">
   <div class="illus-card"><svg viewBox="0 0 100 90">
@@ -32,7 +32,7 @@
   <path d="M38 55c0-9 6-15 12-15s12 6 12 15z" fill="#05AF72"/>
   <rect x="78" y="62" width="8" height="10" rx="1" fill="#052538"/>
   <circle cx="82" cy="58" r="5" fill="#05AF72"/>
-</svg><div class="illus-caption">Grow from<br>anywhere</div></div>
+</svg><div class="illus-caption" data-i18n="cap_grow_anywhere">Grow from<br>anywhere</div></div>
 </div>
 
 <main>
@@ -98,7 +98,7 @@
 
     document.getElementById("hero").innerHTML = `
       <h1>${T("welcome")}, ${user.name.split(" ")[0]}</h1>
-      <div class="quote">"${q.text}" — <span class="who">${q.who}</span></div>
+      <div class="quote">"${quoteText(q)}" — <span class="who">${q.who}</span></div>
     `;
 
     const s = user.stats;
